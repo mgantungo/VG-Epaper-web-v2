@@ -6,7 +6,7 @@ module.exports = {
     exec_mode: 'fork',  // or 'cluster' for multiple instances
     env: {
       NODE_ENV: 'production',
-      PORT: 3877  // or your desired port
+      PORT: 3999  // or your desired port
     },
     error_file: './logs/err.log',
     out_file: './logs/out.log',
