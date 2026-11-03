@@ -7,7 +7,7 @@ export default defineNuxtConfig({
   // runtime, so setting PORT=3871 in .env covers both `nuxt dev` and the
   // built server consistently — no separate prod config needed.
   devServer: {
-    port: Number(process.env.PORT) || 3871
+    port: Number(process.env.PORT) || 3999
   },
 
   modules: ['@pinia/nuxt', '@vueuse/nuxt', '@nuxtjs/tailwindcss'],
