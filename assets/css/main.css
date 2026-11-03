@@ -1,0 +1,118 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html, body, #__nuxt {
+  height: 100%;
+}
+body {
+  @apply bg-neutral-950 text-white;
+  -webkit-user-select: none; user-select: none; /* copy-protection deterrent, see plugins/copy-protection.client.ts for the honest caveat */
+}
+img { -webkit-user-drag: none; user-drag: none; }
+
+/* The reader page is exactly one window tall; only the stage scrolls (when zoomed). */
+.reader-page { height: 100vh; height: 100dvh; }
+
+/* ---- reading stage ------------------------------------------------------
+   The area between the toolbar and the bottom of the window. It is a size
+   container, so the book can size itself against the space actually left
+   for it (cqw/cqh) rather than against the whole viewport with hand-tuned
+   subtractions. When zoomed past fit, the stage scrolls in both directions. */
+.reader-stage {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
+  container-type: size;
+  overflow: auto;
+  overscroll-behavior: contain;
+  display: flex;               /* margin:auto on the book centres it when it fits */
+  padding: 8px;                /* the only gap between paper and window edge */
+}
+
+/* ---- book / page-turn --------------------------------------------------- */
+/* Contain-fit: the book is as large as possible while the whole page (or the
+   whole two-page spread) stays visible — limited by width on tall/narrow
+   windows and by height on wide ones, as the legacy reader does. --page-ar
+   (page width ÷ height) is measured from the real page images; --zoom
+   multiplies the fitted size, and the stage scrolls beyond 1. */
+.book-wrap {
+  --page-ar: 0.8523;
+  --zoom: 1;
+  --spread-ar: calc(var(--page-ar) * 2);
+  position: relative;
+  flex: none;
+  margin: auto;
+  width: calc(min(100cqw, 100cqh * var(--spread-ar)) * var(--zoom));
+  aspect-ratio: var(--spread-ar);
+  filter: drop-shadow(0 18px 40px rgb(0 0 0 / 0.5));
+}
+.book-wrap.single-mode {
+  --spread-ar: var(--page-ar);
+}
+@media (max-width: 639px) {
+  .reader-stage { padding: 4px; }
+}
+.book {
+  position: relative; width: 100%; height: 100%;
+  perspective: 2600px; border-radius: 3px;
+  background: #fff;
+}
+.page-slot {
+  position: absolute; top: 0; bottom: 0; width: 50%;
+  overflow: hidden; background: #fff;
+}
+.page-slot.left {
+  left: 0; border-radius: 3px 0 0 3px;
+  box-shadow: inset -30px 0 30px -26px rgb(0 0 0 / 0.20), inset -6px 0 10px -8px rgb(0 0 0 / 0.15);
+}
+.page-slot.right {
+  right: 0; border-radius: 0 3px 3px 0;
+  box-shadow: inset 30px 0 30px -26px rgb(0 0 0 / 0.20), inset 6px 0 10px -8px rgb(0 0 0 / 0.15);
+}
+.single-mode .page-slot.left { display: none; }
+.single-mode .page-slot.right { left: 0; right: 0; width: auto; border-radius: 3px; box-shadow: none; }
+
+.flip-page {
+  position: absolute; top: 0; bottom: 0; width: 50%;
+  transform-style: preserve-3d; z-index: 20; will-change: transform;
+  transition: transform 0.62s cubic-bezier(0.32, 0.04, 0.18, 1);
+  box-shadow: 0 0 30px rgb(0 0 0 / 0.5);
+}
+.flip-page .face {
+  position: absolute; inset: 0; overflow: hidden;
+  backface-visibility: hidden; -webkit-backface-visibility: hidden; background: #fff;
+}
+.flip-page .face.back { transform: rotateY(180deg); }
+
+.hotspot {
+  position: absolute; cursor: pointer; border-radius: 3px;
+  transition: background 0.12s ease;
+}
+.hotspot:hover { background: rgb(20 20 20 / 0.06); outline: 1px dashed rgb(0 0 0 / 0.25); }
+
+.paywall-preview-blur { filter: blur(7px) brightness(0.9); transition: filter 0.2s ease; }
+/* ---- page-turn arrows ----------------------------------------------------
+   Overlaid on the left/right edges of the stage (like the legacy reader)
+   instead of sitting beside the book and eating ~110px of its width. */
+.side-nav {
+  position: absolute; top: 50%; z-index: 30;
+  transform: translateY(-50%);
+  width: 44px; height: 120px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 34px; line-height: 1;
+  color: rgb(255 255 255 / 0.85);
+  background: rgb(38 38 38 / 0.55);
+  border: 1px solid rgb(255 255 255 / 0.08);
+  backdrop-filter: blur(4px);
+  transition: background 0.15s ease, opacity 0.15s ease;
+}
+.side-nav:hover:not(:disabled) { background: rgb(38 38 38 / 0.85); color: #fff; }
+.side-nav:active:not(:disabled) { transform: translateY(-50%) scale(0.95); }
+.side-nav:disabled { opacity: 0; pointer-events: none; }
+.side-nav.prev { left: 0; border-radius: 0 8px 8px 0; }
+.side-nav.next { right: 0; border-radius: 8px 0 0 8px; }
+@media (max-width: 639px) {
+  .side-nav { width: 32px; height: 72px; font-size: 26px; }
+}
